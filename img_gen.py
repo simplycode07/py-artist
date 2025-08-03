@@ -26,15 +26,8 @@ for y in range(0, height, block_size):
         block = img_array[y:y_end, x:x_end]
         avg = int(np.mean(block))
         img_array[y:y_end, x:x_end] = avg
-
-
-result = Image.fromarray(img_array)
-result.save('result.png')
-img_gray = cv2.imread('result.png')
-ret, thresh_img = cv2.threshold(img_gray, 128, 255, cv2.THRESH_BINARY)
-cv2.imwrite('bin.png', thresh_img)
-
-imgtowrite = Image.open('bin.png').convert("L")
+ret, thresh_img = cv2.threshold(img_array, 128, 255, cv2.THRESH_BINARY)
+imgtowrite = Image.fromarray(thresh_img).convert("L")
 idraw = ImageDraw.Draw(imgtowrite)
 text_positions = []
 for y in range(0, height, block_size):
@@ -60,5 +53,5 @@ for y in range(0, height, block_size):
 
 for pos in text_positions:
     idraw.text(pos, "hello world.", fill=0)
-imgtowrite.save('final_result.png')
+imgtowrite.save('result.png')
             
