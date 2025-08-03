@@ -9,6 +9,7 @@ i knew we can replicate it using code so i made this in a few hours. (yes i have
 
 ![comparison_image](comparison.png)
 
+<img width="200" height="212" alt="image" src="https://github.com/user-attachments/assets/6913acfb-174c-46f6-a3f9-0ee12e6ec792" />
 
 ### try this version if you want to see the intermediate image processing steps saved as images
 ```py
