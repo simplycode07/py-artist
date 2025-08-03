@@ -36,7 +36,7 @@ cv2.imwrite('bin.png', thresh_img)
 
 imgtowrite = Image.open('bin.png').convert("L")
 idraw = ImageDraw.Draw(imgtowrite)
-
+text_positions = []
 for y in range(0, height, block_size):
     for x in range(0, width, block_size):
 
@@ -56,6 +56,9 @@ for y in range(0, height, block_size):
                 continue
             else: 
                 idraw.rectangle([(x, y), (x_end-1, y_end-1)], fill=255)
-                idraw.text(pos, "i miss you.", fill=0)
+                text_positions.append(pos)
+
+for pos in text_positions:
+    idraw.text(pos, "hello world.", fill=0)
 imgtowrite.save('final_result.png')
             
