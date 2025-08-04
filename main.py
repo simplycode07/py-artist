@@ -3,13 +3,22 @@ import cv2
 from PIL import Image, ImageDraw
 import numpy as np
 
-if len(sys.argv) > 1:
-    original_image = cv2.imread(sys.argv[1])
-else:
-    original_image = cv2.imread("input.jpg")
+# if len(sys.argv) > 1:
+#     original_image = cv2.imread(sys.argv[1])
+# else:
+#     original_image = cv2.imread("input.jpg")
+
+if len(sys.argv) <= 1:
+    print("Not enough parameters provided")
+    print("parameters: filename block_size effective_area strength_multiplier")
+    sys.exit()
+
+original_image = cv2.imread(sys.argv[1])
+block_size = int(sys.argv[2])
+effective_area = int(sys.argv[3])
+strength_multiplier = float(sys.argv[4])
 
 brightness = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
-block_size = 16
 height, width = brightness.shape
 brightness_arr = np.array(brightness)
 img_array = np.zeros((height//block_size, width//block_size), dtype=np.uint8)
@@ -34,11 +43,9 @@ for y in range(0, height, block_size):
 def dis(i):
     if i == 0:
         return 0
-    return 1 / abs(i)
+    return 1 / (i**2)
         
 
-effective_area = 6
-strength_multiplier = 2
 
 text_positions = []
 
