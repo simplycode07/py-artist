@@ -31,7 +31,7 @@ for y in range(0, height, block_size):
         block = brightness_arr[y:y_end, x:x_end]
         avg = int(np.mean(block))
 
-        img_array[y//block_size, x//block_size] = avg
+        img_array[y//block_size - 1, x//block_size] = avg
 
 
 # result = Image.fromarray(img_array)
@@ -40,12 +40,14 @@ for y in range(0, height, block_size):
 # for y in range(0, height, block_size):
 #     for x in range(0, width, block_size):
 
+def signof(i):
+    return 1 if i > 0 else -1
+
 def dis(i):
     if i == 0:
         return 0
-    return 1 / (i**2)
+    return signof(i) / (i**2)
         
-
 
 text_positions = []
 
@@ -94,9 +96,9 @@ for pix_j in range(0, len(img_array)):
 idraw = ImageDraw.Draw(result)
 
 for pos in text_positions:
-    # customize the text here!
     idraw.text(pos, "e", fill=0)
+
 print(f'bl_size:{block_size} eff_area:{effective_area} stren_mul:{strength_multiplier}')
-result.save(f'bl_size:{block_size} eff_area:{effective_area} stren_mul:{strength_multiplier}.png')
+result.save(f'{sys.argv[1]} bl_size:{block_size} eff_area:{effective_area} stren_mul:{strength_multiplier}.png')
 
 
