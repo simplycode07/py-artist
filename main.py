@@ -63,6 +63,9 @@ def clamp(start:int, value:int, end:int) -> int:
 result = Image.new("RGB", (width, height), (255, 255, 255))
 for pix_j in range(0, len(img_array)):
     for pix_i in range(0, len(img_array[0])):
+        if img_array[pix_j, pix_i] > 140:
+            continue
+
         text_pos_x = block_size * pix_i + block_size // 2
         text_pos_y = block_size * pix_j + block_size // 2
 
