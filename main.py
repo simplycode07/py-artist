@@ -18,6 +18,7 @@ image_path = Path(sys.argv[1])
 block_size = int(sys.argv[2])
 effective_area = int(sys.argv[3])
 strength_multiplier = float(sys.argv[4])
+string = "e" if len(sys.argv) < 5 else sys.argv[5]
 
 
 def signof(i):
@@ -63,6 +64,7 @@ def convert_image_to_art(original_image):
     text_positions = []
 
     result = Image.new("RGB", (width, height), (255, 255, 255))
+    pixels_done = 0
     for pix_j in range(0, len(img_array)):
         for pix_i in range(0, len(img_array[0])):
 
@@ -102,13 +104,16 @@ def convert_image_to_art(original_image):
             # text_pos_x = clamp(0, text_pos_x, width)
             # text_pos_y = clamp(0, text_pos_y, height)
 
-            text_positions.append([text_pos_x, text_pos_y, tuple(img_array[pix_j, pix_i])])
+            text_positions.append([string[pixels_done % len(string)], text_pos_x, text_pos_y, tuple(img_array[pix_j, pix_i])])
+            pixels_done += 1
+
+        pixels_done = 0
 
     idraw = ImageDraw.Draw(result)
 
-    for x, y, color in text_positions:
+    for chr, x, y, color in text_positions:
         # print(color, type(color))
-        idraw.text((x, y), "e", fill=color)
+        idraw.text((x, y), chr, fill=color)
 
     # result.save(f'{sys.argv[1]} bl_size:{block_size} eff_area:{effective_area} stren_mul:{strength_multiplier}.png')
     return result
