@@ -107,8 +107,6 @@ def convert_image_to_art(original_image):
             text_positions.append([string[pixels_done % len(string)], text_pos_x, text_pos_y, tuple(img_array[pix_j, pix_i])])
             pixels_done += 1
 
-        pixels_done = 0
-
     idraw = ImageDraw.Draw(result)
 
     for chr, x, y, color in text_positions:
@@ -120,7 +118,7 @@ def convert_image_to_art(original_image):
 
 
 if __name__ == "__main__":
-    if image_path.suffix == ".mp4":
+    if image_path.suffix in [".mp4", ".mov"]:
         original_video = cv2.VideoCapture(str(image_path))
         fps = int(original_video.get(cv2.CAP_PROP_FPS))
         width = int(original_video.get(cv2.CAP_PROP_FRAME_WIDTH))
