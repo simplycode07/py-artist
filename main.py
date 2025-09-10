@@ -21,10 +21,17 @@ string_glob = "e" if len(sys.argv) < 6 else sys.argv[5]
 def signof(i):
     return 1 if i > 0 else -1
 
-def dis(i, j):
-    if i == 0 and j == 0:
-        return 0
-    return signof(i) / (j**2 + i**2)
+dis = [[0.0] * effective_area_glob * 2] * effective_area_glob * 2
+
+for i in range(-effective_area_glob, effective_area_glob + 1):
+    for j in range(-effective_area_glob, effective_area_glob + 1):
+        if i == 0 and j == 0: continue
+        dis[i][j] = signof(i) / (j**2 + i**2)
+
+# def dis(i, j):
+#     if i == 0 and j == 0:
+#         return 0
+#     return signof(i) / (j**2 + i**2)
 
 
 def clamp(start: int, value: int, end: int) -> int:
@@ -47,13 +54,13 @@ def calculate_text_position(img_array, img_array_bw, pix_i, pix_j):
             clamped_pix_i = clamp(0, pix_i + i, len(img_array[0]) - 1)
             clamped_pix_j = clamp(0, pix_j + j, len(img_array) - 1)
 
-            if clamped_pix_i == pix_i and clamped_pix_j == pix_j:
-                continue
+            # if clamped_pix_i == pix_i and clamped_pix_j == pix_j:
+            #     continue
 
             change_pos_x += img_array_bw[clamped_pix_j, clamped_pix_i] * \
-                dis(i, j) * strength_multiplier / 128
+                dis[i][j] * strength_multiplier / 128
             change_pos_y += img_array_bw[clamped_pix_j, clamped_pix_i] * \
-                dis(j, i) * strength_multiplier / 128
+                dis[j][i] * strength_multiplier / 128
 
     text_pos_x += (change_pos_x)
     text_pos_y += (change_pos_y)
@@ -79,6 +86,7 @@ def convert_image_to_art(original_image):
     block_size = block_size_glob
     # effective_area = effective_area_glob
 
+    t1 = time.time()
     brightness = original_image
     height, width, _ = brightness.shape
     brightness_arr = np.array(brightness)
@@ -99,18 +107,24 @@ def convert_image_to_art(original_image):
             img_array_bw[y//block_size - 1, x //
                          block_size - 1] = int(np.mean(avg)) - 128
 
+    t2 = time.time()
+
+    print(f"time for converting image to grayscale: {t2 - t1}")
 
     result = Image.new("RGB", (width, height), (255, 255, 255))
     pixels_done = 0
 
     string = string_glob
 
+    t1 = time.time()
     calculated_text_positions = parallel_positions(img_array, img_array_bw)
     idraw = ImageDraw.Draw(result)
 
     for position, text_position in calculated_text_positions:
         idraw.text(text_position, string[pixels_done % len(string)], fill=tuple(img_array[*position]))
         pixels_done += 1
+    t2 = time.time()
+    print(f"time for converting image to ascii art: {t2 - t1}")
 
     return result
 
