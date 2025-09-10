@@ -18,7 +18,7 @@ image_path = Path(sys.argv[1])
 block_size = int(sys.argv[2])
 effective_area = int(sys.argv[3])
 strength_multiplier = float(sys.argv[4])
-string = "e" if len(sys.argv) < 5 else sys.argv[5]
+string = "e" if len(sys.argv) < 6 else sys.argv[5]
 
 
 def signof(i):
