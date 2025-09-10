@@ -1,13 +1,9 @@
 import sys
 import cv2
 import numpy as np
+from multiprocessing import Pool, cpu_count
 from pathlib import Path
 from PIL import Image, ImageDraw
-
-# if len(sys.argv) > 1:
-#     original_image = cv2.imread(sys.argv[1])
-# else:
-#     original_image = cv2.imread("input.jpg")
 
 if len(sys.argv) <= 1:
     print("Not enough parameters provided")
@@ -32,18 +28,57 @@ def dis(i, j):
 
 
 def clamp(start: int, value: int, end: int) -> int:
-    if value < start:
-        return start
-    if value > end:
-        return end
+    value = max(value, start)
+    value = min(value, end)
 
     return value
 
 
+def calculate_text_position(img_array, img_array_bw, pix_i, pix_j):
+    strength_multiplier = strength_multiplier_glob
+    effective_area = effective_area_glob
+    text_pos_x = block_size * pix_i + block_size / 2
+    text_pos_y = block_size * pix_j + block_size / 2
+
+    change_pos_x = 0.0
+    change_pos_y = 0.0
+    for j in range(-effective_area, effective_area):
+        for i in range(-effective_area, effective_area):
+            clamped_pix_i = clamp(0, pix_i + i, len(img_array[0]) - 1)
+            clamped_pix_j = clamp(0, pix_j + j, len(img_array) - 1)
+
+            if clamped_pix_i == pix_i and clamped_pix_j == pix_j:
+                continue
+
+            change_pos_x += img_array_bw[clamped_pix_j, clamped_pix_i] * \
+                dis(i, j) * strength_multiplier / 128
+            change_pos_y += img_array_bw[clamped_pix_j, clamped_pix_i] * \
+                dis(j, i) * strength_multiplier / 128
+
+    text_pos_x += (change_pos_x)
+    text_pos_y += (change_pos_y)
+
+    return text_pos_x, text_pos_y
+
+def worker(args):
+    img_array, img_array_bw, pix_i, pix_j = args
+    return (pix_i, pix_j), calculate_text_position(img_array, img_array_bw, pix_i, pix_j)
+
+def parallel_positions(img_array, img_array_bw):
+    tasks = [(img_array, img_array_bw, i, j) 
+             for j in range(len(img_array)) 
+             for i in range(len(img_array[0]))]
+
+    with Pool(cpu_count()) as pool:
+        results = pool.map(worker, tasks)
+
+    return dict(results)
+
 def convert_image_to_art(original_image):
     # brightness = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
     block_size = block_size_glob
-    effective_area = effective_area_glob
+    # effective_area = effective_area_glob
+
     brightness = original_image
     height, width, _ = brightness.shape
     brightness_arr = np.array(brightness)
@@ -64,52 +99,19 @@ def convert_image_to_art(original_image):
             img_array_bw[y//block_size - 1, x //
                          block_size - 1] = int(np.mean(avg)) - 128
 
-    text_positions = []
 
     result = Image.new("RGB", (width, height), (255, 255, 255))
     pixels_done = 0
 
-    strength_multiplier = strength_multiplier_glob
     string = string_glob
-    for pix_j in range(0, len(img_array)):
-        for pix_i in range(0, len(img_array[0])):
 
-            # uncomment this if you dont want text everywhere
-            # if img_array[pix_j, pix_i] > 140:
-            #     continue
-
-            text_pos_x = block_size * pix_i + block_size // 2
-            text_pos_y = block_size * pix_j + block_size // 2
-
-            original_text_pos = (text_pos_x, text_pos_y)
-            change_pos_x = 0.0
-            change_pos_y = 0.0
-            for j in range(-effective_area, effective_area):
-                for i in range(-effective_area, effective_area):
-                    clamped_pix_i = clamp(0, pix_i + i, len(img_array[0]) - 1)
-                    clamped_pix_j = clamp(0, pix_j + j, len(img_array) - 1)
-
-                    if clamped_pix_i == pix_i and clamped_pix_j == pix_j:
-                        continue
-
-                    change_pos_x += img_array_bw[clamped_pix_j, clamped_pix_i] * \
-                        dis(i, j) * strength_multiplier / 128
-                    change_pos_y += img_array_bw[clamped_pix_j, clamped_pix_i] * \
-                        dis(j, i) * strength_multiplier / 128
-
-            text_pos_x += round(change_pos_x)
-            text_pos_y += round(change_pos_y)
-
-            text_positions.append([string[pixels_done % len(
-                string)], text_pos_x, text_pos_y, tuple(img_array[pix_j, pix_i])])
-            pixels_done += 1
-
+    calculated_text_positions = parallel_positions(img_array, img_array_bw)
     idraw = ImageDraw.Draw(result)
 
-    for chr, x, y, color in text_positions:
-        idraw.text((x, y), chr, fill=color)
+    for position, text_position in calculated_text_positions.items():
+        idraw.text(text_position, string[pixels_done % len(string)], fill=tuple(img_array[*position[::-1]]))
+        pixels_done += 1
 
-    # result.save(f'{sys.argv[1]} bl_size:{block_size} eff_area:{effective_area} stren_mul:{strength_multiplier}.png')
     return result
 
 
