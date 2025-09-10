@@ -1,6 +1,7 @@
 import sys
 import cv2
 import numpy as np
+import time
 from multiprocessing import Pool, cpu_count
 from pathlib import Path
 from PIL import Image, ImageDraw
@@ -19,7 +20,6 @@ string_glob = "e" if len(sys.argv) < 6 else sys.argv[5]
 
 def signof(i):
     return 1 if i > 0 else -1
-
 
 def dis(i, j):
     if i == 0 and j == 0:
@@ -42,8 +42,8 @@ def calculate_text_position(img_array, img_array_bw, pix_i, pix_j):
 
     change_pos_x = 0.0
     change_pos_y = 0.0
-    for j in range(-effective_area, effective_area):
-        for i in range(-effective_area, effective_area):
+    for j in range(-effective_area, effective_area + 1):
+        for i in range(-effective_area, effective_area + 1):
             clamped_pix_i = clamp(0, pix_i + i, len(img_array[0]) - 1)
             clamped_pix_j = clamp(0, pix_j + j, len(img_array) - 1)
 
@@ -62,7 +62,7 @@ def calculate_text_position(img_array, img_array_bw, pix_i, pix_j):
 
 def worker(args):
     img_array, img_array_bw, pix_i, pix_j = args
-    return (pix_i, pix_j), calculate_text_position(img_array, img_array_bw, pix_i, pix_j)
+    return (pix_j, pix_i), calculate_text_position(img_array, img_array_bw, pix_i, pix_j)
 
 def parallel_positions(img_array, img_array_bw):
     tasks = [(img_array, img_array_bw, i, j) 
@@ -72,7 +72,7 @@ def parallel_positions(img_array, img_array_bw):
     with Pool(cpu_count()) as pool:
         results = pool.map(worker, tasks)
 
-    return dict(results)
+    return results
 
 def convert_image_to_art(original_image):
     # brightness = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
@@ -108,8 +108,8 @@ def convert_image_to_art(original_image):
     calculated_text_positions = parallel_positions(img_array, img_array_bw)
     idraw = ImageDraw.Draw(result)
 
-    for position, text_position in calculated_text_positions.items():
-        idraw.text(text_position, string[pixels_done % len(string)], fill=tuple(img_array[*position[::-1]]))
+    for position, text_position in calculated_text_positions:
+        idraw.text(text_position, string[pixels_done % len(string)], fill=tuple(img_array[*position]))
         pixels_done += 1
 
     return result
