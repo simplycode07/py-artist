@@ -20,5 +20,5 @@ python main.py {input_image} {effective_area} {strength_multiplier} {text}
 ## Results
 Input Image | Output Image
 ---- | ---
-![input image](./input.jpg) | ![output image](input.jpg%20bl_size:8%20eff_area:3%20stren_mul:1.0.png)
-![input image](./wall3.png) | ![output image](./wall3.png%20bl_size:6%20eff_area:2%20stren_mul:0.5.png)
+![input image](./images/input.jpg) | ![output image](./images/input.jpg%20bl_size:8%20eff_area:3%20stren_mul:1.0.png)
+![input image](./images/wall3.png) | ![output image](./images/wall3.png%20bl_size:6%20eff_area:2%20stren_mul:0.5.png)
