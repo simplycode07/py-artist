@@ -21,11 +21,13 @@ string_glob = "e" if len(sys.argv) < 6 else sys.argv[5]
 def signof(i):
     return 1 if i > 0 else -1
 
+
 dis = [[0.0] * effective_area_glob * 2] * effective_area_glob * 2
 
 for i in range(-effective_area_glob, effective_area_glob + 1):
     for j in range(-effective_area_glob, effective_area_glob + 1):
-        if i == 0 and j == 0: continue
+        if i == 0 and j == 0:
+            continue
         dis[i][j] = signof(i) / (j**2 + i**2)
 
 # def dis(i, j):
@@ -67,19 +69,22 @@ def calculate_text_position(img_array, img_array_bw, pix_i, pix_j):
 
     return text_pos_x, text_pos_y
 
+
 def worker(args):
     img_array, img_array_bw, pix_i, pix_j = args
     return (pix_j, pix_i), calculate_text_position(img_array, img_array_bw, pix_i, pix_j)
 
+
 def parallel_positions(img_array, img_array_bw):
-    tasks = [(img_array, img_array_bw, i, j) 
-             for j in range(len(img_array)) 
+    tasks = [(img_array, img_array_bw, i, j)
+             for j in range(len(img_array))
              for i in range(len(img_array[0]))]
 
     with Pool(cpu_count()) as pool:
         results = pool.map(worker, tasks)
 
     return results
+
 
 def convert_image_to_art(original_image):
     # brightness = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
@@ -90,11 +95,11 @@ def convert_image_to_art(original_image):
     brightness = original_image
     height, width, _ = brightness.shape
     brightness_arr = np.array(brightness)
-    img_array = np.zeros(
-        (height//block_size, width//block_size, 3), dtype=np.uint8)
+    img_array = np.zeros((height//block_size, width//block_size, 3),
+                         dtype=np.uint8)
 
-    img_array_bw = np.zeros(
-        (height//block_size, width//block_size), dtype=np.int8)
+    img_array_bw = np.zeros((height//block_size, width//block_size),
+                            dtype=np.int8)
     for y in range(0, height, block_size):
         for x in range(0, width, block_size):
             y_end = min(y + block_size, height)
@@ -104,8 +109,8 @@ def convert_image_to_art(original_image):
             avg = block.mean(axis=(0, 1)).astype(np.uint8)
 
             img_array[y//block_size - 1, x//block_size - 1] = avg[::-1]
-            img_array_bw[y//block_size - 1, x //
-                         block_size - 1] = int(np.mean(avg)) - 128
+            img_array_bw[y//block_size - 1,
+                         x // block_size - 1] = int(np.mean(avg)) - 128
 
     t2 = time.time()
 
@@ -121,7 +126,9 @@ def convert_image_to_art(original_image):
     idraw = ImageDraw.Draw(result)
 
     for position, text_position in calculated_text_positions:
-        idraw.text(text_position, string[pixels_done % len(string)], fill=tuple(img_array[*position]))
+        idraw.text(text_position,
+                   string[pixels_done % len(string)],
+                   fill=tuple(img_array[*position]))
         pixels_done += 1
     t2 = time.time()
     print(f"time for converting image to ascii art: {t2 - t1}")
