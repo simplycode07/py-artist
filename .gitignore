@@ -1,3 +1,8 @@
 .zip
 *.png
 *.jpeg
+
+!input.jpg
+!input.jpg bl_size:8 eff_area:3 stren_mul:1.0.png
+!wall3.png
+!wall3.png bl_size:6 eff_area:2 stren_mul:0.5.png
